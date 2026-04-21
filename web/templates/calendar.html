@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>{{.OrganizationTitle}} - Kalender</title>
+    <link rel="stylesheet" href="/static/css/style.css{{if ne .Version "dev"}}?v={{.Version}}{{end}}">
+    <script src="/static/js/htmx.min.js"></script>
+</head>
+<body class="bg-transparent">
+    <div class="w-full mx-auto p-[2px]">
+        <div id="calendar-content">
+            {{template "calendar-content" .}}
+        </div>
+    </div>
+
+    <div id="modal-container"></div>
+</body>
+</html>
