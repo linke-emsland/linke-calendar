@@ -80,6 +80,8 @@ func (s *Scraper) scrapeZetkin(orgID int) (int, string) {
 	}
 
 	totalEvents := 0
+	currentURLs := make([]string, 0, len(events))
+
 	for _, event := range events {
 		startTime, err := parseZetkinTime(event.StartTime)
 		if err != nil {
@@ -110,6 +112,7 @@ func (s *Scraper) scrapeZetkin(orgID int) (int, string) {
 		}
 
 		eventURL := fmt.Sprintf("https://app.zetkin.die-linke.de/o/%d/events/%d", event.Organization.ID, event.ID)
+		currentURLs = append(currentURLs, eventURL)
 
 		dbEvent := &database.Event{
 			OrganizationID: orgID,
@@ -130,6 +133,12 @@ func (s *Scraper) scrapeZetkin(orgID int) (int, string) {
 	}
 
 	log.Printf("Scraped %d events from Zetkin for organization %d", totalEvents, orgID)
+
+	if err := s.db.DeleteEventsNotInURLs(orgID, currentURLs); err != nil {
+		log.Printf("Failed to delete removed events for organization %d: %v", orgID, err)
+	}
+
+
 	return totalEvents, orgTitle
 }
 
