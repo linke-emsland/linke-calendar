@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+	"strings"
 )
 
 type Event struct {
@@ -192,4 +193,31 @@ func (db *DB) queryEvents(query string, args ...interface{}) ([]*Event, error) {
 	}
 
 	return events, nil
+}
+
+func (db *DB) DeleteEventsNotInURLs(orgID int, urls []string) error {
+	if len(urls) == 0 {
+		return nil
+	}
+
+	placeholders := strings.Repeat("?,", len(urls))
+	placeholders = placeholders[:len(placeholders)-1]
+
+	query := fmt.Sprintf(`
+		DELETE FROM events
+		WHERE organization_id = ?
+		AND url NOT IN (%s)
+	`, placeholders)
+
+	args := make([]interface{}, 0, len(urls)+1)
+	args = append(args, orgID)
+	for _, u := range urls {
+		args = append(args, u)
+	}
+
+	_, err := db.Exec(query, args...)
+	if err != nil {
+		return fmt.Errorf("failed to delete missing events: %w", err)
+	}
+	return nil
 }
